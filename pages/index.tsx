@@ -35,11 +35,16 @@ export default function Home() {
         <meta name="description" content="Cross-platform todo list app" />
         <link rel="icon" href="/favicon.ico" />
       </Head>
-      <ul>
-        {tasks.map((task, idx) => (
-          <li key={idx}>{task.title}</li>
-        ))}
-      </ul>
+      <main className={styles.main}>
+        <h1 className={styles.title}>Tasks</h1>
+        <ul>
+          {tasks.map((task, idx) => (
+            <li key={idx} className={styles.task}>
+              {task.title}
+            </li>
+          ))}
+        </ul>
+      </main>
     </div>
   );
 }

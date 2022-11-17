@@ -12,6 +12,14 @@
   align-items: center;
 }
 
+.task {
+  display: block;
+  padding: 10px 15px;
+  background-color: lightgrey;
+  margin: 10px 5px;
+  border-radius: 5px;
+}
+
 .footer {
   display: flex;
   flex: 1;
@@ -42,7 +50,7 @@
 .title {
   margin: 0;
   line-height: 1.15;
-  font-size: 4rem;
+  font-size: 2rem;
 }
 
 .title,
