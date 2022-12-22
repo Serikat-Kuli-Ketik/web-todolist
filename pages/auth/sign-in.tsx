@@ -2,10 +2,12 @@ import { FormEventHandler, useState } from "react";
 import Router from "next/router";
 import styled from "styled-components";
 import Head from "next/head";
+import { useUserStore } from "../../stores/user.store";
 
 export default function SignInPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const setUserId = useUserStore((state) => state.set);
 
   const handleFormSubmit: FormEventHandler = async (e) => {
     e.preventDefault();
@@ -26,7 +28,16 @@ export default function SignInPage() {
       return;
     }
 
-    const jsonResponse = await response.json();
+    const jsonResponse = (await response.json()) as {
+      meta: object;
+      data: {
+        user_id: string;
+        token: string;
+        email: string;
+      };
+    };
+
+    setUserId(jsonResponse.data.user_id);
     Router.replace("/");
   };
 
