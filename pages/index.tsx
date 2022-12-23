@@ -1,6 +1,9 @@
 import Head from "next/head";
+import Router from "next/router";
 import { FormEventHandler, useEffect, useState } from "react";
 import styled from "styled-components";
+import { useRouteProtection } from "../hooks/use-route-protection";
+import { useUserStore } from "../stores/user.store";
 import httpApi from "../utils/axios";
 
 type Task = {
@@ -80,6 +83,7 @@ const NewTaskSubmit = styled.input`
 export default function Home() {
   const [tasks, setTasks] = useState(initialTasks);
   const [newTask, setNewTask] = useState<string>("");
+  useRouteProtection();
 
   const onNewTaskSave: FormEventHandler<HTMLFormElement> = (e) => {
     e.preventDefault();
