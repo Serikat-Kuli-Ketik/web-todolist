@@ -4,6 +4,7 @@ import styled from "styled-components";
 import { useRouteProtection } from "../hooks/use-route-protection";
 import useSwr from "swr";
 import { swrFetcher } from "../utils";
+import Link from "next/link";
 
 type Task = {
   id: string;
@@ -41,7 +42,13 @@ export default function Home() {
 
         <TasksContainer>
           {data &&
-            data.data.map((task, idx) => <Task key={idx}>{task.title}</Task>)}
+            data.data.map((task, idx) => {
+              return (
+                <Link key={idx} href={`/tasks/${task.id}`}>
+                  <Task>{task.title}</Task>
+                </Link>
+              );
+            })}
         </TasksContainer>
 
         <NewTaskForm onSubmit={onNewTaskSave}>
