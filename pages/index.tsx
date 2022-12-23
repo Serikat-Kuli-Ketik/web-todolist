@@ -2,6 +2,8 @@ import Head from "next/head";
 import { FormEventHandler, useState } from "react";
 import styled from "styled-components";
 import { useRouteProtection } from "../hooks/use-route-protection";
+import useSwr from "swr";
+import { swrFetcher } from "../utils";
 
 type Task = {
   id: string;
@@ -9,22 +11,52 @@ type Task = {
   content?: string;
 };
 
-const initialTasks: Task[] = [
-  {
-    id: "79687798-5282-4c7b-86d1-475e13a0290a",
-    title: "Buy Milk",
-    content: "Frisian flag 60L",
-  },
-  {
-    id: "f9044e81-9fb2-4dd5-ad51-036405227369",
-    title: "Go for a walk",
-  },
-  {
-    id: "cce7e7cc-d542-429b-bcee-32444dd9eada",
-    title: "Work on thesis draft",
-    content: "See the revision log at https://google.com",
-  },
-];
+export default function Home() {
+  useRouteProtection();
+  const { data, error, isLoading } = useSwr<{ meta: object; data: Task[] }>(
+    `${process.env.NEXT_PUBLIC_API_URL}/tasks`,
+    swrFetcher
+  );
+
+  const [newTask, setNewTask] = useState<string>("");
+
+  const onNewTaskSave: FormEventHandler<HTMLFormElement> = (e) => {
+    e.preventDefault();
+    alert("New task functionality to be implemented.");
+  };
+
+  if (error) return <h1>Cannot load tasks.</h1>;
+  if (isLoading) return <h1>Loading...</h1>;
+
+  return (
+    <div>
+      <Head>
+        <title>Todo List</title>
+        <meta name="description" content="Cross-platform todo list app" />
+        <link rel="icon" href="/favicon.ico" />
+      </Head>
+
+      <MainContainer>
+        <Title>Tasks</Title>
+
+        <TasksContainer>
+          {data &&
+            data.data.map((task, idx) => <Task key={idx}>{task.title}</Task>)}
+        </TasksContainer>
+
+        <NewTaskForm onSubmit={onNewTaskSave}>
+          <NewTaskInput
+            type="text"
+            placeholder="Insert new task"
+            value={newTask}
+            onChange={(e) => setNewTask(e.target.value)}
+          />
+          <NewTaskSubmit type="submit" value="Save" />
+        </NewTaskForm>
+      </MainContainer>
+    </div>
+  );
+}
 
 const MainContainer = styled.div`
   width: 100vh;
@@ -76,46 +108,3 @@ const NewTaskSubmit = styled.input`
   border-radius: 5px;
   border: 1px solid lightgrey;
 `;
-
-export default function Home() {
-  const [tasks, setTasks] = useState(initialTasks);
-  const [newTask, setNewTask] = useState<string>("");
-  useRouteProtection();
-
-  const onNewTaskSave: FormEventHandler<HTMLFormElement> = (e) => {
-    e.preventDefault();
-    if (newTask === undefined || newTask === "") return;
-    setTasks([...tasks, { id: "hehe", title: newTask }]);
-    setNewTask("");
-  };
-
-  return (
-    <div>
-      <Head>
-        <title>Todo List</title>
-        <meta name="description" content="Cross-platform todo list app" />
-        <link rel="icon" href="/favicon.ico" />
-      </Head>
-
-      <MainContainer>
-        <Title>Tasks</Title>
-
-        <TasksContainer>
-          {tasks.map((task, idx) => (
-            <Task key={idx}>{task.title}</Task>
-          ))}
-        </TasksContainer>
-
-        <NewTaskForm onSubmit={onNewTaskSave}>
-          <NewTaskInput
-            type="text"
-            placeholder="Insert new task"
-            value={newTask}
-            onChange={(e) => setNewTask(e.target.value)}
-          />
-          <NewTaskSubmit type="submit" value="Save" />
-        </NewTaskForm>
-      </MainContainer>
-    </div>
-  );
-}
