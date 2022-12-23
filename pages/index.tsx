@@ -1,10 +1,7 @@
 import Head from "next/head";
-import Router from "next/router";
-import { FormEventHandler, useEffect, useState } from "react";
+import { FormEventHandler, useState } from "react";
 import styled from "styled-components";
 import { useRouteProtection } from "../hooks/use-route-protection";
-import { useUserStore } from "../stores/user.store";
-import httpApi from "../utils/axios";
 
 type Task = {
   id: string;
@@ -91,18 +88,6 @@ export default function Home() {
     setTasks([...tasks, { id: "hehe", title: newTask }]);
     setNewTask("");
   };
-
-  useEffect(() => {
-    httpApi.get(
-      "/api/tasks",
-      (response) => {
-        console.log(response);
-      },
-      (response) => {
-        console.error(response);
-      }
-    );
-  }, []);
 
   return (
     <div>
