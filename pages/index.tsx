@@ -5,6 +5,7 @@ import { useRouteProtection } from "../hooks/use-route-protection";
 import useSwr from "swr";
 import { swrFetcher } from "../utils";
 import Link from "next/link";
+import { Loading } from "../components/loading";
 
 type Task = {
   id: string;
@@ -27,7 +28,7 @@ export default function Home() {
   };
 
   if (error) return <h1>Cannot load tasks.</h1>;
-  if (isLoading) return <h1>Loading...</h1>;
+  if (isLoading) return <Loading />;
 
   return (
     <div>

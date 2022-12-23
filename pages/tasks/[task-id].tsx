@@ -4,6 +4,7 @@ import { useRouteProtection } from "../../hooks/use-route-protection";
 import useSwr from "swr";
 import { swrFetcher } from "../../utils";
 import { useRouter } from "next/router";
+import { Loading } from "../../components/loading";
 
 type Task = {
   id: string;
@@ -25,7 +26,7 @@ export default function TaskDetail() {
     return <h1>Task with ID {router.query["task-id"]} cannot be found.</h1>;
   }
 
-  if (isLoading) return <h1>Loading...</h1>;
+  if (isLoading) return <Loading />;
 
   return (
     <div>
