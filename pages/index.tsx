@@ -6,11 +6,12 @@ import useSwr from "swr";
 import { swrFetcher } from "../utils";
 import Link from "next/link";
 import { Loading } from "../components/loading";
-import { Task } from "../shared/types";
+import { APIResponse, Task } from "../shared/types";
+import { X as XIcon } from "tabler-icons-react";
 
 export default function Home() {
   useRouteProtection();
-  const { data, error, isLoading } = useSwr<{ meta: object; data: Task[] }>(
+  const { data, error, isLoading, mutate } = useSwr<APIResponse<Task[]>>(
     `${process.env.NEXT_PUBLIC_API_URL}/tasks`,
     swrFetcher
   );
@@ -20,6 +21,20 @@ export default function Home() {
   const onNewTaskSave: FormEventHandler<HTMLFormElement> = (e) => {
     e.preventDefault();
     alert("New task functionality to be implemented.");
+  };
+
+  const handleTaskDelete = async (taskId: string) => {
+    const response = await fetch(
+      `${process.env.NEXT_PUBLIC_API_URL}/tasks/${taskId}`,
+      { method: "DELETE" }
+    );
+
+    if (!response.ok) {
+      alert("Failed deleting task, try again later.");
+      return;
+    }
+
+    mutate();
   };
 
   if (error) return <h1>Cannot load tasks.</h1>;
@@ -40,9 +55,17 @@ export default function Home() {
           {data &&
             data.data.map((task, idx) => {
               return (
-                <Link key={idx} href={`/tasks/${task.id}`}>
-                  <Task>{task.title}</Task>
-                </Link>
+                <TaskItem key={idx}>
+                  <Link href={`/tasks/${task.id}`}>
+                    <p>{task.title} </p>
+                  </Link>
+                  <XIcon
+                    className="task-delete-btn"
+                    size={15}
+                    onClick={() => handleTaskDelete(task.id)}
+                    cursor="pointer"
+                  />
+                </TaskItem>
               );
             })}
         </TasksContainer>
@@ -86,13 +109,31 @@ const TasksContainer = styled.ul`
   padding: 0;
 `;
 
-const Task = styled.li`
-  display: block;
+const TaskItem = styled.li`
+  display: flex;
   width: 100%;
   padding: 10px 15px;
   background-color: lightgrey;
   margin: 10px 5px;
   border-radius: 5px;
+  align-items: center;
+  justify-content: space-between;
+
+  .task-delete-btn {
+    border-radius: 50%;
+    transition: all 0.2s;
+
+    :hover {
+      background-color: darkgrey;
+      transition: all 0.2s;
+    }
+
+    :active {
+      background-color: black;
+      color: white;
+      transition: all 0.2s;
+    }
+  }
 `;
 
 const NewTaskForm = styled.form`
