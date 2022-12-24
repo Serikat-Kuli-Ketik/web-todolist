@@ -6,8 +6,9 @@ import useSwr from "swr";
 import { swrFetcher } from "../utils";
 import Link from "next/link";
 import { Loading } from "../components/loading";
-import { APIResponse, Task } from "../shared/types";
-import { X as XIcon } from "tabler-icons-react";
+import { APIResponse, Task, TaskStatus } from "../shared/types";
+import { X as XIcon, Check as CheckIcon } from "tabler-icons-react";
+import { toast } from "react-toastify";
 
 export default function Home() {
   useRouteProtection();
@@ -29,13 +30,13 @@ export default function Home() {
     });
 
     if (!response.ok) {
-      alert("Failed creating new task, try again later.");
+      toast("Failed creating new task, try again later.", { type: "error" });
       return;
     }
 
     mutate();
     setNewTask("");
-    alert("Success creating new task.");
+    toast("Success creating new task.", { type: "success" });
   };
 
   const handleTaskDelete = async (taskId: string) => {
@@ -45,12 +46,29 @@ export default function Home() {
     );
 
     if (!response.ok) {
-      alert("Failed deleting task, try again later.");
+      toast("Failed deleting task, try again later.", { type: "error" });
       return;
     }
 
     mutate();
-    alert("Success deleting task.");
+    toast("Success deleting task.", { type: "success" });
+  };
+
+  const handleTaskChecking = async (taskId: string) => {
+    const response = await fetch(
+      `${process.env.NEXT_PUBLIC_API_URL}/tasks/${taskId}`,
+      { method: "PUT", body: JSON.stringify({ status: TaskStatus.COMPLETED }) }
+    );
+
+    if (!response.ok) {
+      toast("Failed updating task, try again in a few minutes.", {
+        type: "error",
+      });
+      return;
+    }
+
+    mutate();
+    toast("Task completed", { type: "success" });
   };
 
   if (error) return <h1>Cannot load tasks.</h1>;
@@ -73,14 +91,30 @@ export default function Home() {
               return (
                 <TaskItem key={idx}>
                   <Link href={`/tasks/${task.id}`}>
-                    <p>{task.title} </p>
+                    {task.status !== TaskStatus.COMPLETED ? (
+                      <p>{task.title}</p>
+                    ) : (
+                      <p>
+                        <s>{task.title}</s>
+                      </p>
+                    )}
                   </Link>
-                  <XIcon
-                    className="task-delete-btn"
-                    size={15}
-                    onClick={() => handleTaskDelete(task.id)}
-                    cursor="pointer"
-                  />
+                  {task.status !== TaskStatus.COMPLETED && (
+                    <div className="task-actions">
+                      <XIcon
+                        className="task-delete-btn"
+                        size={18}
+                        onClick={() => handleTaskDelete(task.id)}
+                        cursor="pointer"
+                      />
+                      <CheckIcon
+                        className="task-check-btn"
+                        size={18}
+                        onClick={() => handleTaskChecking(task.id)}
+                        cursor="pointer"
+                      />
+                    </div>
+                  )}
                 </TaskItem>
               );
             })}
@@ -134,7 +168,12 @@ const TaskItem = styled.li`
   align-items: center;
   justify-content: space-between;
 
-  .task-delete-btn {
+  .task-actions > * {
+    margin: 0 2px;
+  }
+
+  .task-delete-btn,
+  .task-check-btn {
     border-radius: 50%;
     transition: all 0.2s;
 
