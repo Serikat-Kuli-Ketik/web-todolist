@@ -8,16 +8,56 @@ import { Loading } from "../../components/loading";
 import { format } from "date-fns";
 import { Alarm, Repeat } from "tabler-icons-react";
 import { APIResponse, Task, TaskStatus } from "../../shared/types";
+import { ChangeEventHandler, useEffect, useRef, useState } from "react";
+import { toast } from "react-toastify";
 
 export default function TaskDetail() {
   useRouteProtection();
   const router = useRouter();
-  const { data, error, isLoading } = useSwr<APIResponse<Task>>(
+  const { data, error, isLoading, mutate } = useSwr<APIResponse<Task>>(
     router.isReady
       ? `${process.env.NEXT_PUBLIC_API_URL}/tasks/${router.query["task-id"]}`
       : null,
     swrFetcher
   );
+
+  const [taskStatus, setTaskStatus] = useState(data?.data.status);
+  const taskStatusRef = useRef<HTMLSelectElement>(null);
+
+  useEffect(() => {
+    setTaskStatus(data?.data.status);
+  }, [data]);
+
+  const handleTaskStatusChange: ChangeEventHandler = async () => {
+    if (taskStatusRef.current === null) {
+      toast("Cannot update task's status, try again in a few minutes.", {
+        type: "error",
+      });
+
+      return;
+    }
+
+    const response = await fetch(
+      `${process.env.NEXT_PUBLIC_API_URL}/tasks/${router.query["task-id"]}`,
+      {
+        method: "PUT",
+        body: JSON.stringify({ status: taskStatusRef.current.value }),
+      }
+    );
+
+    if (!response.ok) {
+      toast("Cannot update task's status, try again in a few minutes.", {
+        type: "error",
+      });
+      taskStatusRef.current.value = taskStatus ?? "";
+
+      return;
+    }
+
+    console.log("testing");
+    mutate();
+    setTaskStatus(taskStatusRef.current.value as TaskStatus);
+  };
 
   if (error) {
     return <h1>Task with ID {router.query["task-id"]} cannot be found.</h1>;
@@ -39,11 +79,13 @@ export default function TaskDetail() {
           <TaskStatusSelector
             name="task-status"
             id="task-status-selector"
-            value={data?.data.status}
+            defaultValue={data?.data.status}
+            onChange={handleTaskStatusChange}
+            ref={taskStatusRef}
           >
-            {Object.values(TaskStatus).map((taskStatus, idx) => (
-              <option key={idx} value={taskStatus}>
-                {taskStatus}
+            {Object.values(TaskStatus).map((status, idx) => (
+              <option key={idx} value={status}>
+                {status}
               </option>
             ))}
           </TaskStatusSelector>
