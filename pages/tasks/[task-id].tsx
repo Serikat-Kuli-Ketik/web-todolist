@@ -7,12 +7,12 @@ import { useRouter } from "next/router";
 import { Loading } from "../../components/loading";
 import { format } from "date-fns";
 import { Alarm, Repeat } from "tabler-icons-react";
-import { Task } from "../../shared/types";
+import { APIResponse, Task } from "../../shared/types";
 
 export default function TaskDetail() {
   useRouteProtection();
   const router = useRouter();
-  const { data, error, isLoading } = useSwr<{ meta: object; data: Task }>(
+  const { data, error, isLoading } = useSwr<APIResponse<Task>>(
     router.isReady
       ? `${process.env.NEXT_PUBLIC_API_URL}/tasks/${router.query["task-id"]}`
       : null,

@@ -10,3 +10,8 @@ export type Task = {
     interval: number;
   }>;
 };
+
+export type APIResponse<T> = {
+  meta: object;
+  data: T;
+};
