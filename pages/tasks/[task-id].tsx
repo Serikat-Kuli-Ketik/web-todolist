@@ -7,7 +7,7 @@ import { useRouter } from "next/router";
 import { Loading } from "../../components/loading";
 import { format } from "date-fns";
 import { Alarm, Repeat } from "tabler-icons-react";
-import { APIResponse, Task } from "../../shared/types";
+import { APIResponse, Task, TaskStatus } from "../../shared/types";
 
 export default function TaskDetail() {
   useRouteProtection();
@@ -36,50 +36,62 @@ export default function TaskDetail() {
       <MainContainer>
         <TitleContainer>
           <Title>{data?.data.title}</Title>
-          <TaskStatusSelector name="task-status" id="task-status-selector">
-            <option value="open">Open</option>
-            <option value="open">In Progress</option>
-            <option value="open">Finished</option>
+          <TaskStatusSelector
+            name="task-status"
+            id="task-status-selector"
+            value={data?.data.status}
+          >
+            {Object.values(TaskStatus).map((taskStatus, idx) => (
+              <option key={idx} value={taskStatus}>
+                {taskStatus}
+              </option>
+            ))}
           </TaskStatusSelector>
         </TitleContainer>
         <TaskContentContainer>
           <div id="content-container">
             <p className="section-title">Content</p>
-            <p>{data?.data.content}</p>
+            {data?.data.content ? <p>{data?.data.content}</p> : null}
           </div>
+
           <div id="labels-container">
             <p className="section-title">Labels</p>
-            <ul>
-              {data?.data.labels.map((label, idx) => (
-                <TaskLabel key={idx} color={label.color}>
-                  {label.title}
-                </TaskLabel>
-              ))}
-            </ul>
+            {data?.data.labels ? (
+              <ul>
+                {data?.data.labels.map((label, idx) => (
+                  <TaskLabel key={idx} color={label.color}>
+                    {label.title}
+                  </TaskLabel>
+                ))}
+              </ul>
+            ) : null}
           </div>
+
           <div id="reminders-container">
             <p className="section-title">Reminders</p>
-            <TaskReminderListContainer id="reminders-list-container">
-              {data?.data.reminders.map((reminder, idx) => (
-                <TaskReminder key={idx}>
-                  <div>
-                    <Alarm id="task-alarm-icon" />
+            {data?.data.reminders ? (
+              <TaskReminderListContainer id="reminders-list-container">
+                {data?.data.reminders.map((reminder, idx) => (
+                  <TaskReminder key={idx}>
+                    <div>
+                      <Alarm id="task-alarm-icon" />
+                      <div>
+                        <p>
+                          {format(new Date(reminder.datetime), "dd MMM yyyy")}
+                        </p>
+                        <p>{format(new Date(reminder.datetime), "HH:mm")}</p>
+                      </div>
+                    </div>
                     <div>
                       <p>
-                        {format(new Date(reminder.datetime), "dd MMM yyyy")}
+                        <Repeat size={10} /> {reminder.repeat} times every{" "}
+                        {reminder.interval}s
                       </p>
-                      <p>{format(new Date(reminder.datetime), "HH:mm")}</p>
                     </div>
-                  </div>
-                  <div>
-                    <p>
-                      <Repeat size={10} /> {reminder.repeat} times every{" "}
-                      {reminder.interval}s
-                    </p>
-                  </div>
-                </TaskReminder>
-              ))}
-            </TaskReminderListContainer>
+                  </TaskReminder>
+                ))}
+              </TaskReminderListContainer>
+            ) : null}
           </div>
         </TaskContentContainer>
       </MainContainer>
@@ -168,7 +180,6 @@ const TaskLabel = styled.li<TaskLabelProp>`
   font-size: 0.75rem;
   padding: 5px 10px;
   background-color: ${(prop) => prop.color};
-  mix-blend-mode: difference;
   margin: 5px;
   border-radius: 5px;
 `;
