@@ -18,9 +18,24 @@ export default function Home() {
 
   const [newTask, setNewTask] = useState<string>("");
 
-  const onNewTaskSave: FormEventHandler<HTMLFormElement> = (e) => {
+  const onNewTaskSave: FormEventHandler<HTMLFormElement> = async (e) => {
     e.preventDefault();
-    alert("New task functionality to be implemented.");
+    const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/tasks`, {
+      method: "POST",
+      body: JSON.stringify({ title: newTask }),
+      headers: {
+        "Content-Type": "application/json",
+      },
+    });
+
+    if (!response.ok) {
+      alert("Failed creating new task, try again later.");
+      return;
+    }
+
+    mutate();
+    setNewTask("");
+    alert("Success creating new task.");
   };
 
   const handleTaskDelete = async (taskId: string) => {
@@ -35,6 +50,7 @@ export default function Home() {
     }
 
     mutate();
+    alert("Success deleting task.");
   };
 
   if (error) return <h1>Cannot load tasks.</h1>;
@@ -96,7 +112,6 @@ const MainContainer = styled.div`
   top: 50%;
   left: 50%;
   transform: translate(-50%, -50%);
-  /* background-color: red; */
 `;
 
 const Title = styled.h1`
