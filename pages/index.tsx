@@ -6,12 +6,7 @@ import useSwr from "swr";
 import { swrFetcher } from "../utils";
 import Link from "next/link";
 import { Loading } from "../components/loading";
-
-type Task = {
-  id: string;
-  title: string;
-  content?: string;
-};
+import { Task } from "../shared/types";
 
 export default function Home() {
   useRouteProtection();
