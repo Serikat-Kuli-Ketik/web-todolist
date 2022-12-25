@@ -4,7 +4,6 @@ const initMock = async () => {
     server.listen();
   } else {
     const { worker } = require("./browser");
-    console.log("worker", worker);
     worker.start({ onUnhandledRequest: "bypass" });
   }
 };
