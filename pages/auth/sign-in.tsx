@@ -3,8 +3,11 @@ import Router from "next/router";
 import styled from "styled-components";
 import Head from "next/head";
 import { useUserStore } from "../../stores/user.store";
+import { useRouteProtection } from "../../hooks/use-route-protection";
+import { UserAuthState } from "../../shared/types";
 
 export default function SignInPage() {
+  useRouteProtection(UserAuthState.AUTHENTICATED);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const setUserId = useUserStore((state) => state.set);
