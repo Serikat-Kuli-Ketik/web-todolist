@@ -1,3 +1,8 @@
+export enum UserAuthState {
+  AUTHENTICATED = "authenticated",
+  UNAUTHENTICATED = "unauthenticated",
+}
+
 export enum TaskStatus {
   OPEN = "Open",
   IN_PROGRESS = "In Progress",
