@@ -1,4 +1,4 @@
 import { setupWorker } from "msw";
-import { handlers } from "./routes/tasks";
+import { routesHandlers } from "./routes";
 
-export const worker = setupWorker(...handlers);
+export const worker = setupWorker(...routesHandlers);

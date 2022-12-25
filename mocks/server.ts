@@ -1,4 +1,4 @@
 import { setupServer } from "msw/node";
-import { handlers } from "./routes/tasks";
+import { routesHandlers } from "./routes";
 
-export const server = setupServer(...handlers);
+export const server = setupServer(...routesHandlers);
