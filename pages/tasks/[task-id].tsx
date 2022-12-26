@@ -24,6 +24,7 @@ export default function TaskDetail() {
     swrFetcher
   );
 
+  const taskTitleRef = useRef<HTMLDivElement>(null);
   const taskStatusRef = useRef<HTMLSelectElement>(null);
   const taskContentRef = useRef<HTMLTextAreaElement>(null);
 
@@ -36,6 +37,38 @@ export default function TaskDetail() {
   useEffect(() => {
     setTaskStatus(data?.data.status);
   }, [data]);
+
+  const handleTitleChange = async () => {
+    mutate(
+      async () => {
+        await fetch(
+          `${process.env.NEXT_PUBLIC_API_URL}/tasks/${router.query["task-id"]}`,
+          {
+            method: "PUT",
+            body: JSON.stringify({ title: taskTitleRef.current!.innerText }),
+            headers: {
+              "Content-Type": "application/json",
+            },
+          }
+        );
+
+        return {
+          meta: { ...data!.meta },
+          data: {
+            ...data!.data,
+            title: taskTitleRef.current!.innerText,
+          },
+        };
+      },
+      {
+        optimisticData: (data) => ({
+          meta: { ...data!.meta },
+          data: { ...data!.data, title: taskTitleRef.current!.innerText },
+        }),
+        rollbackOnError: true,
+      }
+    );
+  };
 
   const handleTaskStatusChange: ChangeEventHandler = async () => {
     if (taskStatusRef.current === null) {
@@ -170,7 +203,9 @@ export default function TaskDetail() {
 
       <MainContainer>
         <TitleContainer>
-          <Title>{data?.data.title}</Title>
+          <Title ref={taskTitleRef} contentEditable onBlur={handleTitleChange}>
+            {data?.data.title}
+          </Title>
           <StatusSelector
             name="task-status"
             id="task-status-selector"
@@ -350,6 +385,7 @@ const TitleContainer = styled.div`
 const Title = styled.h1`
   font-size: 2rem;
   font-family: sans-serif;
+  max-width: 400px;
 `;
 
 const StatusSelector = styled.select`
