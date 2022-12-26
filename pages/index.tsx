@@ -12,11 +12,15 @@ import {
   Check as CheckIcon,
   Plus,
   DeviceFloppy,
+  Logout,
 } from "tabler-icons-react";
 import { toast } from "react-toastify";
+import { useUserStore } from "../stores/user.store";
+import Router from "next/router";
 
 export default function Home() {
   useRouteProtection();
+  const deleteSession = useUserStore((state) => state.delete);
   const { data, error, isLoading, mutate } = useSwr<APIResponse<Task[]>>(
     `${process.env.NEXT_PUBLIC_API_URL}/tasks`,
     swrFetcher
@@ -85,6 +89,20 @@ export default function Home() {
 
     mutate();
     toast("Task completed", { type: "success" });
+  };
+
+  const handleSignOut = async () => {
+    const response = await fetch(
+      `${process.env.NEXT_PUBLIC_API_URL}/auth/sign-out`
+    );
+
+    if (!response.ok) {
+      toast("Cannot sign out, try again in a moment.", { type: "error" });
+      return;
+    }
+
+    deleteSession();
+    Router.replace("/auth/sign-in");
   };
 
   if (error) return <h1>Cannot load tasks.</h1>;
@@ -174,6 +192,9 @@ export default function Home() {
               })
             : null}
         </TasksContainer>
+        <SignoutButton onClick={handleSignOut}>
+          Sign out <Logout size={20} />
+        </SignoutButton>
       </MainContainer>
     </div>
   );
@@ -286,8 +307,29 @@ const NewTaskInput = styled.input`
   border: 1px solid grey;
 `;
 
-const NewTaskSubmit = styled.input`
-  padding: 10px;
-  border-radius: 5px;
-  border: 1px solid lightgrey;
+const SignoutButton = styled.button`
+  align-self: flex-end;
+  display: flex;
+  align-items: center;
+  padding: 5px 10px;
+  width: 95px;
+  justify-content: space-between;
+  border-radius: 8px;
+  background-color: transparent;
+  border: 1px solid white;
+  opacity: 0.7;
+  cursor: pointer;
+  transition: all 0.2s;
+  font-size: 0.8rem;
+
+  :hover {
+    opacity: 1;
+    border: 1px solid lightgrey;
+  }
+
+  :active {
+    transform: scale(0.95);
+    background-color: black;
+    color: white;
+  }
 `;
