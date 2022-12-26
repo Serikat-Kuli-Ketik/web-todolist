@@ -7,7 +7,12 @@ import { swrFetcher } from "../utils";
 import Link from "next/link";
 import { Loading } from "../components/loading";
 import { APIResponse, Task, TaskStatus } from "../shared/types";
-import { X as XIcon, Check as CheckIcon } from "tabler-icons-react";
+import {
+  X as XIcon,
+  Check as CheckIcon,
+  Plus,
+  DeviceFloppy,
+} from "tabler-icons-react";
 import { toast } from "react-toastify";
 
 export default function Home() {
@@ -23,9 +28,14 @@ export default function Home() {
   });
 
   const [newTask, setNewTask] = useState<string>("");
+  const [displayNewTaskForm, setDisplayNewTaskForm] = useState(false);
 
-  const onNewTaskSave: FormEventHandler<HTMLFormElement> = async (e) => {
-    e.preventDefault();
+  const handleTaskSave = async () => {
+    if (newTask === "") {
+      toast("Enter task title please.", { type: "error" });
+      return;
+    }
+
     const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/tasks`, {
       method: "POST",
       body: JSON.stringify({ title: newTask }),
@@ -42,6 +52,7 @@ export default function Home() {
     mutate();
     setNewTask("");
     toast("Success creating new task.", { type: "success" });
+    setDisplayNewTaskForm(false);
   };
 
   const handleTaskDelete = async (taskId: string) => {
@@ -88,7 +99,38 @@ export default function Home() {
       </Head>
 
       <MainContainer>
-        <PageTitle>Tasks</PageTitle>
+        <PageTitleContainer>
+          <PageTitle>Tasks</PageTitle>
+          {displayNewTaskForm ? (
+            <div>
+              <NewTaskInput
+                type="text"
+                placeholder="Task title"
+                value={newTask}
+                onChange={(e) => setNewTask(e.target.value)}
+              />
+              <DeviceFloppy
+                size={30}
+                cursor="pointer"
+                className="new-task-btn"
+                onClick={handleTaskSave}
+              />
+              <XIcon
+                size={30}
+                cursor="pointer"
+                className="new-task-btn"
+                onClick={() => setDisplayNewTaskForm(false)}
+              />
+            </div>
+          ) : (
+            <Plus
+              className="new-task-btn"
+              cursor="pointer"
+              size={30}
+              onClick={() => setDisplayNewTaskForm(true)}
+            />
+          )}
+        </PageTitleContainer>
 
         <TasksContainer>
           {tasksToDisplay
@@ -132,23 +174,13 @@ export default function Home() {
               })
             : null}
         </TasksContainer>
-
-        <NewTaskForm onSubmit={onNewTaskSave}>
-          <NewTaskInput
-            type="text"
-            placeholder="Insert new task"
-            value={newTask}
-            onChange={(e) => setNewTask(e.target.value)}
-          />
-          <NewTaskSubmit type="submit" value="Save" />
-        </NewTaskForm>
       </MainContainer>
     </div>
   );
 }
 
 const MainContainer = styled.div`
-  width: 100vh;
+  width: 500px;
   height: fit-content;
   padding: 20px;
   display: flex;
@@ -161,6 +193,36 @@ const MainContainer = styled.div`
   transform: translate(-50%, -50%);
 `;
 
+const PageTitleContainer = styled.div`
+  display: flex;
+  width: 100%;
+  align-items: center;
+  justify-content: space-between;
+
+  > div {
+    display: flex;
+    align-items: center;
+  }
+
+  .new-task-btn {
+    margin-left: 5px;
+    padding: 5px;
+    border: 0.5px solid lightgrey;
+    border-radius: 8px;
+    transition: all 0.2s;
+    font-size: 0.8rem;
+
+    :hover {
+      background-color: black;
+      color: white;
+    }
+
+    :active {
+      transform: scale(0.95);
+    }
+  }
+`;
+
 const PageTitle = styled.h1`
   font-size: 2rem;
   font-family: sans-serif;
@@ -168,6 +230,7 @@ const PageTitle = styled.h1`
 
 const TasksContainer = styled.ul`
   width: 100%;
+  margin: 20px 0;
   padding: 0;
   display: flex;
   flex-direction: column;
@@ -177,7 +240,7 @@ const TasksContainer = styled.ul`
 const TaskItem = styled.li<{ bgColor?: string; bold?: boolean }>`
   margin: 0 auto;
   display: flex;
-  width: 80%;
+  width: 100%;
   padding: 10px 15px;
   background-color: ${(props) => props.bgColor ?? "lightgrey"};
   margin: 5px;
@@ -217,8 +280,8 @@ const NewTaskForm = styled.form`
 `;
 
 const NewTaskInput = styled.input`
-  margin: 0 10px;
-  padding: 10px;
+  margin: 0 5px;
+  padding: 5px 10px;
   border-radius: 5px;
   border: 1px solid grey;
 `;
