@@ -6,10 +6,13 @@ import { swrFetcher } from "../../utils";
 import { useRouter } from "next/router";
 import { Loading } from "../../components/loading";
 import { format } from "date-fns";
-import { Alarm, Edit, Repeat, DeviceFloppy } from "tabler-icons-react";
-import { APIResponse, Task, TaskStatus } from "../../shared/types";
+import { Alarm, Edit, Repeat, DeviceFloppy, Plus } from "tabler-icons-react";
+import { APIResponse, Task, TaskLabel, TaskStatus } from "../../shared/types";
 import { ChangeEventHandler, useEffect, useRef, useState } from "react";
 import { toast } from "react-toastify";
+import Modal from "react-modal";
+import { LabelSelectorModal } from "../../components/label-selector";
+import Color from "color";
 
 export default function TaskDetail() {
   useRouteProtection();
@@ -26,6 +29,9 @@ export default function TaskDetail() {
 
   const [taskStatus, setTaskStatus] = useState(data?.data.status);
   const [isEditingContent, setIsEditingContent] = useState(false);
+  const [isModalOpen, setIsModalOpen] = useState<null | "label" | "reminder">(
+    null
+  );
 
   useEffect(() => {
     setTaskStatus(data?.data.status);
@@ -84,11 +90,39 @@ export default function TaskDetail() {
     mutate();
   };
 
+  const handleAddNewLabel = async (newLabel: TaskLabel) => {
+    setIsModalOpen("label");
+    const response = await fetch(
+      `${process.env.NEXT_PUBLIC_API_URL}/tasks/${router.query["task-id"]}`,
+      {
+        method: "PUT",
+        body: JSON.stringify({
+          labels: [...(data?.data.labels ?? []), newLabel] as Task["labels"],
+        }),
+        headers: {
+          "Content-Type": "application/json",
+        },
+      }
+    );
+
+    if (!response.ok) {
+      toast("Failed updating task's label, try again in a moment.", {
+        type: "error",
+      });
+      return;
+    }
+
+    mutate();
+    toast("Added new label.", { type: "success" });
+  };
+
   if (error) {
     return <h1>Task with ID {router.query["task-id"]} cannot be found.</h1>;
   }
 
   if (isLoading) return <Loading />;
+
+  const ReminderModal = Modal;
 
   return (
     <div>
@@ -97,6 +131,18 @@ export default function TaskDetail() {
         <meta name="description" content="Cross-platform todo list app" />
         <link rel="icon" href="/favicon.ico" />
       </Head>
+
+      <LabelSelectorModal
+        isOpen={isModalOpen === "label"}
+        onSelect={(label) => {
+          handleAddNewLabel(label);
+          setIsModalOpen(null);
+        }}
+      />
+
+      <ReminderModal isOpen={isModalOpen === "reminder"}>
+        <h1>Reminder Modal</h1>
+      </ReminderModal>
 
       <MainContainer>
         <TitleContainer>
@@ -146,11 +192,20 @@ export default function TaskDetail() {
           <div id="labels-container">
             <SectionTitle>
               <p>Labels</p>
+              <Plus
+                size={18}
+                cursor="pointer"
+                onClick={() => setIsModalOpen("label")}
+              />
             </SectionTitle>
             {data?.data.labels ? (
               <ul>
                 {data?.data.labels.map((label, idx) => (
-                  <LabelItem key={idx} color={label.color}>
+                  <LabelItem
+                    key={idx}
+                    bgColor={label.color}
+                    textColor={Color(label.color).isLight() ? "black" : "white"}
+                  >
                     {label.title}
                   </LabelItem>
                 ))}
@@ -161,6 +216,7 @@ export default function TaskDetail() {
           <div id="reminders-container">
             <SectionTitle>
               <p>Reminders</p>
+              <Plus size={18} cursor="pointer" />
             </SectionTitle>
             {data?.data.reminders ? (
               <ReminderListContainer id="reminders-list-container">
@@ -214,7 +270,8 @@ const DetailsContainer = styled.div`
   grid-template-areas:
     "content content"
     "labels reminders";
-  gap: 40px 10px;
+  gap: 40px 0;
+  box-sizing: border-box;
 
   #content-container {
     grid-area: content;
@@ -224,6 +281,7 @@ const DetailsContainer = styled.div`
     grid-area: labels;
     height: 100%;
     width: 100%;
+    padding: 0 10px;
   }
 
   #reminders-container {
@@ -232,6 +290,7 @@ const DetailsContainer = styled.div`
     width: 100%;
     display: flex;
     flex-direction: column;
+    padding: 0 10px;
   }
 `;
 
@@ -300,14 +359,16 @@ const ContentTextarea = styled.textarea`
 `;
 
 type LabelItemProp = {
-  color: string;
+  bgColor: string;
+  textColor: string;
 };
 
 const LabelItem = styled.li<LabelItemProp>`
   display: inline-block;
   font-size: 0.75rem;
   padding: 5px 10px;
-  background-color: ${(prop) => prop.color};
+  background-color: ${(prop) => prop.bgColor};
+  color: ${(prop) => prop.textColor};
   margin: 5px;
   border-radius: 5px;
 `;
