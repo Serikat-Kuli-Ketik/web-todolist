@@ -5,22 +5,34 @@ import Head from "next/head";
 import { useUserStore } from "../../stores/user.store";
 import { useRouteProtection } from "../../hooks/use-route-protection";
 import { UserAuthState } from "../../shared/types";
-import Link from "next/link";
 import { toast } from "react-toastify";
 
-export default function SignInPage() {
+export default function SignUp() {
   useRouteProtection(UserAuthState.AUTHENTICATED);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [passwordConfirm, setPasswordConfirm] = useState("");
   const setUserId = useUserStore((state) => state.set);
+
+  const canSubmitForm = Boolean(email && password && passwordConfirm);
 
   const handleFormSubmit: FormEventHandler = async (e) => {
     e.preventDefault();
+
+    if (!canSubmitForm) {
+      toast("Cannot submit incomplete form.", { type: "error" });
+      return;
+    }
+
     const response = await fetch(
-      `${process.env.NEXT_PUBLIC_API_URL}/auth/sign-in`,
+      `${process.env.NEXT_PUBLIC_API_URL}/auth/sign-up`,
       {
         method: "POST",
-        body: JSON.stringify({ email, password }),
+        body: JSON.stringify({
+          email,
+          password,
+          password_confirmation: passwordConfirm,
+        }),
         headers: {
           "Content-Type": "application/json",
         },
@@ -28,7 +40,7 @@ export default function SignInPage() {
     );
 
     if (!response.ok) {
-      toast("Cannot log in, check your credentials and try again.", {
+      toast("Cannot sign up, check your credentials and try again.", {
         type: "error",
       });
       return;
@@ -50,14 +62,11 @@ export default function SignInPage() {
   return (
     <>
       <Head>
-        <title>Sign In | Dializer</title>
+        <title>Sign Up | Dializer</title>
       </Head>
       <PageWrapper>
-        <h1>Sign In</h1>
-        <SignInForm
-          onSubmit={handleFormSubmit}
-          canSubmit={Boolean(email && password)}
-        >
+        <h1>Sign Up</h1>
+        <SignInForm onSubmit={handleFormSubmit} canSubmit={canSubmitForm}>
           <input
             type="email"
             value={email}
@@ -72,12 +81,15 @@ export default function SignInPage() {
             name="password"
             placeholder="Password"
           />
-          <input type="submit" value="Sign in" />
+          <input
+            value={passwordConfirm}
+            onChange={(e) => setPasswordConfirm(e.target.value)}
+            type="password"
+            name="password"
+            placeholder="Confirm Password"
+          />
+          <input type="submit" value="Sign up" />
         </SignInForm>
-        <RegisterNotice>
-          Don&apos;t have an account? Sign up{" "}
-          <Link href={"/auth/sign-up"}>here</Link>.
-        </RegisterNotice>
       </PageWrapper>
     </>
   );
@@ -127,16 +139,5 @@ const SignInForm = styled.form<{ canSubmit: boolean }>`
     &:active {
       transform: scale(0.95);
     }
-  }
-`;
-
-const RegisterNotice = styled.p`
-  font-size: 0.8rem;
-  margin: 15px 0;
-  color: #3a3b3c;
-
-  a {
-    text-decoration: underline;
-    color: black;
   }
 `;
