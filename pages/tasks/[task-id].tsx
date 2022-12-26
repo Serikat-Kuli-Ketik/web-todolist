@@ -6,7 +6,7 @@ import { swrFetcher } from "../../utils";
 import { useRouter } from "next/router";
 import { Loading } from "../../components/loading";
 import { format } from "date-fns";
-import { Alarm, Edit, Repeat, DeviceFloppy, Plus } from "tabler-icons-react";
+import { Alarm, Edit, Repeat, DeviceFloppy, Plus, X } from "tabler-icons-react";
 import { APIResponse, Task, TaskLabel, TaskStatus } from "../../shared/types";
 import { ChangeEventHandler, useEffect, useRef, useState } from "react";
 import { toast } from "react-toastify";
@@ -116,6 +116,29 @@ export default function TaskDetail() {
     toast("Added new label.", { type: "success" });
   };
 
+  const handleRemoveLabel = async (labelId: string) => {
+    const response = await fetch(
+      `${process.env.NEXT_PUBLIC_API_URL}/tasks/${router.query["task-id"]}`,
+      {
+        method: "PUT",
+        body: JSON.stringify({
+          labels: data?.data.labels?.filter((label) => label.id !== labelId),
+        }),
+        headers: {
+          "Content-Type": "application/json",
+        },
+      }
+    );
+
+    if (!response.ok) {
+      toast("Failed removing label, try again in a moment.", { type: "error" });
+      return;
+    }
+
+    toast("Success removing label.", { type: "success" });
+    mutate();
+  };
+
   if (error) {
     return <h1>Task with ID {router.query["task-id"]} cannot be found.</h1>;
   }
@@ -207,7 +230,12 @@ export default function TaskDetail() {
                     bgColor={label.color}
                     textColor={Color(label.color).isLight() ? "black" : "white"}
                   >
-                    {label.title}
+                    <p>{label.title}</p>
+                    <X
+                      size={13}
+                      cursor="pointer"
+                      onClick={() => handleRemoveLabel(label.id)}
+                    />
                   </LabelItem>
                 ))}
               </ul>
@@ -365,13 +393,15 @@ type LabelItemProp = {
 };
 
 const LabelItem = styled.li<LabelItemProp>`
-  display: inline-block;
+  display: inline-flex;
   font-size: 0.75rem;
   padding: 5px 10px;
   background-color: ${(prop) => prop.bgColor};
   color: ${(prop) => prop.textColor};
   margin: 5px;
   border-radius: 5px;
+  align-items: center;
+  justify-content: space-between;
 `;
 
 const ReminderListContainer = styled.div`
