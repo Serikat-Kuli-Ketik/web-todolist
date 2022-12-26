@@ -172,12 +172,12 @@ export const handlers: Parameters<typeof setupWorker> = [
   ),
 
   rest.delete(
-    `${process.env.NEXT_PUBLIC_API_URL}/tasks/:id`,
+    `${process.env.NEXT_PUBLIC_API_URL}/labels/:id`,
     (req, res, ctx) => {
       const { id } = req.params;
-      const targetTaskIdx = labelsStore.findIndex((task) => task.id === id);
+      const targetLabelIdx = labelsStore.findIndex((task) => task.id === id);
 
-      if (targetTaskIdx === -1) {
+      if (targetLabelIdx === -1) {
         return res(
           ctx.status(404),
           ctx.json({
@@ -189,7 +189,7 @@ export const handlers: Parameters<typeof setupWorker> = [
         );
       }
 
-      labelsStore.splice(targetTaskIdx, 1);
+      labelsStore.splice(targetLabelIdx, 1);
       return res(ctx.status(204));
     }
   ),
