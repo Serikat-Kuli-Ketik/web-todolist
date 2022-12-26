@@ -6,7 +6,7 @@ import { swrFetcher } from "../../utils";
 import { useRouter } from "next/router";
 import { Loading } from "../../components/loading";
 import { format } from "date-fns";
-import { Alarm, Repeat } from "tabler-icons-react";
+import { Alarm, Edit, Repeat, DeviceFloppy } from "tabler-icons-react";
 import { APIResponse, Task, TaskStatus } from "../../shared/types";
 import { ChangeEventHandler, useEffect, useRef, useState } from "react";
 import { toast } from "react-toastify";
@@ -21,8 +21,11 @@ export default function TaskDetail() {
     swrFetcher
   );
 
-  const [taskStatus, setTaskStatus] = useState(data?.data.status);
   const taskStatusRef = useRef<HTMLSelectElement>(null);
+  const taskContentRef = useRef<HTMLTextAreaElement>(null);
+
+  const [taskStatus, setTaskStatus] = useState(data?.data.status);
+  const [isEditingContent, setIsEditingContent] = useState(false);
 
   useEffect(() => {
     setTaskStatus(data?.data.status);
@@ -54,9 +57,31 @@ export default function TaskDetail() {
       return;
     }
 
-    console.log("testing");
     mutate();
     setTaskStatus(taskStatusRef.current.value as TaskStatus);
+  };
+
+  const handleSaveNewContent = async () => {
+    const response = await fetch(
+      `${process.env.NEXT_PUBLIC_API_URL}/tasks/${router.query["task-id"]}`,
+      {
+        method: "PUT",
+        body: JSON.stringify({ content: taskContentRef.current?.value }),
+        headers: {
+          "Content-Type": "application/json",
+        },
+      }
+    );
+
+    if (!response.ok) {
+      toast("Failed updating task content.", { type: "error" });
+      mutate();
+      return;
+    }
+
+    toast("Success updating task content.", { type: "success" });
+    setIsEditingContent(false);
+    mutate();
   };
 
   if (error) {
@@ -76,7 +101,7 @@ export default function TaskDetail() {
       <MainContainer>
         <TitleContainer>
           <Title>{data?.data.title}</Title>
-          <TaskStatusSelector
+          <StatusSelector
             name="task-status"
             id="task-status-selector"
             defaultValue={data?.data.status}
@@ -88,33 +113,59 @@ export default function TaskDetail() {
                 {status}
               </option>
             ))}
-          </TaskStatusSelector>
+          </StatusSelector>
         </TitleContainer>
-        <TaskContentContainer>
+        <DetailsContainer>
           <div id="content-container">
-            <p className="section-title">Content</p>
-            {data?.data.content ? <p>{data?.data.content}</p> : null}
+            <SectionTitle>
+              <p>Content</p>
+              {isEditingContent ? (
+                <TaskContentSaveBtn onClick={handleSaveNewContent}>
+                  <DeviceFloppy size={15} /> Save
+                </TaskContentSaveBtn>
+              ) : (
+                <Edit
+                  size={18}
+                  cursor="pointer"
+                  onClick={() => setIsEditingContent(true)}
+                />
+              )}
+            </SectionTitle>
+            <ContentInnerContainer>
+              {data?.data && !isEditingContent ? (
+                <Content>{data?.data.content}</Content>
+              ) : null}
+              {data?.data && isEditingContent ? (
+                <ContentTextarea ref={taskContentRef}>
+                  {data?.data.content}
+                </ContentTextarea>
+              ) : null}
+            </ContentInnerContainer>
           </div>
 
           <div id="labels-container">
-            <p className="section-title">Labels</p>
+            <SectionTitle>
+              <p>Labels</p>
+            </SectionTitle>
             {data?.data.labels ? (
               <ul>
                 {data?.data.labels.map((label, idx) => (
-                  <TaskLabel key={idx} color={label.color}>
+                  <LabelItem key={idx} color={label.color}>
                     {label.title}
-                  </TaskLabel>
+                  </LabelItem>
                 ))}
               </ul>
             ) : null}
           </div>
 
           <div id="reminders-container">
-            <p className="section-title">Reminders</p>
+            <SectionTitle>
+              <p>Reminders</p>
+            </SectionTitle>
             {data?.data.reminders ? (
-              <TaskReminderListContainer id="reminders-list-container">
+              <ReminderListContainer id="reminders-list-container">
                 {data?.data.reminders.map((reminder, idx) => (
-                  <TaskReminder key={idx}>
+                  <ReminderItem key={idx}>
                     <div>
                       <Alarm id="task-alarm-icon" />
                       <div>
@@ -130,12 +181,12 @@ export default function TaskDetail() {
                         {reminder.interval}s
                       </p>
                     </div>
-                  </TaskReminder>
+                  </ReminderItem>
                 ))}
-              </TaskReminderListContainer>
+              </ReminderListContainer>
             ) : null}
           </div>
-        </TaskContentContainer>
+        </DetailsContainer>
       </MainContainer>
     </div>
   );
@@ -150,7 +201,7 @@ const MainContainer = styled.div`
   margin: 0 auto;
 `;
 
-const TaskContentContainer = styled.div`
+const DetailsContainer = styled.div`
   display: grid;
   border-radius: 8px;
   border: 0.5px solid lightgrey;
@@ -163,11 +214,10 @@ const TaskContentContainer = styled.div`
   grid-template-areas:
     "content content"
     "labels reminders";
-  gap: 10px;
+  gap: 40px 10px;
 
   #content-container {
     grid-area: content;
-    min-height: 200px;
   }
 
   #labels-container {
@@ -183,15 +233,23 @@ const TaskContentContainer = styled.div`
     display: flex;
     flex-direction: column;
   }
+`;
 
-  .section-title {
-    border-bottom: 1px solid lightgrey;
-    font-size: 0.9rem;
-    font-weight: bold;
-    color: #3a3b3c;
-    padding-bottom: 5px;
-    margin-bottom: 10px;
-  }
+const ContentInnerContainer = styled.div`
+  max-height: 200px;
+  overflow-y: scroll;
+`;
+
+const SectionTitle = styled.div`
+  border-bottom: 1px solid lightgrey;
+  font-size: 0.9rem;
+  font-weight: bold;
+  color: #3a3b3c;
+  padding-bottom: 5px;
+  margin-bottom: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
 `;
 
 const TitleContainer = styled.div`
@@ -206,18 +264,46 @@ const Title = styled.h1`
   font-family: sans-serif;
 `;
 
-const TaskStatusSelector = styled.select`
+const StatusSelector = styled.select`
   padding: 5px 10px;
   box-sizing: border-box;
   border-radius: 20px;
   color: black;
 `;
 
-type TaskLabelProp = {
+const Content = styled.p`
+  font-size: 0.8rem;
+`;
+
+const TaskContentSaveBtn = styled.button`
+  display: flex;
+  align-items: center;
+  padding: 3px 5px;
+  font-size: 0.7rem;
+  cursor: pointer;
+  border: 1px solid lightgrey;
+  border-radius: 6px;
+  transition: all 0.2s;
+
+  :hover {
+    border: 1px solid black;
+    transition: all 0.2s;
+  }
+`;
+
+const ContentTextarea = styled.textarea`
+  width: 100%;
+  height: 300px;
+  padding: 10px;
+  border: 0.5px solid lightgrey;
+  border-radius: 6px;
+`;
+
+type LabelItemProp = {
   color: string;
 };
 
-const TaskLabel = styled.li<TaskLabelProp>`
+const LabelItem = styled.li<LabelItemProp>`
   display: inline-block;
   font-size: 0.75rem;
   padding: 5px 10px;
@@ -226,7 +312,7 @@ const TaskLabel = styled.li<TaskLabelProp>`
   border-radius: 5px;
 `;
 
-const TaskReminderListContainer = styled.div`
+const ReminderListContainer = styled.div`
   max-height: 150px;
   overflow-y: scroll;
   display: flex;
@@ -234,7 +320,7 @@ const TaskReminderListContainer = styled.div`
   align-items: center;
 `;
 
-const TaskReminder = styled.div`
+const ReminderItem = styled.div`
   display: inline-grid;
   width: 80%;
   border-radius: 8px;
