@@ -17,6 +17,11 @@ export default function Home() {
     swrFetcher
   );
 
+  const tasksToDisplay = data?.data.sort((a) => {
+    if (a.status === TaskStatus.COMPLETED) return 1;
+    return -1;
+  });
+
   const [newTask, setNewTask] = useState<string>("");
 
   const onNewTaskSave: FormEventHandler<HTMLFormElement> = async (e) => {
@@ -83,41 +88,49 @@ export default function Home() {
       </Head>
 
       <MainContainer>
-        <Title>Tasks</Title>
+        <PageTitle>Tasks</PageTitle>
 
         <TasksContainer>
-          {data &&
-            data.data.map((task, idx) => {
-              return (
-                <TaskItem key={idx}>
-                  <Link href={`/tasks/${task.id}`}>
-                    {task.status !== TaskStatus.COMPLETED ? (
-                      <p>{task.title}</p>
-                    ) : (
-                      <p>
-                        <s>{task.title}</s>
-                      </p>
+          {tasksToDisplay
+            ? tasksToDisplay.map((task, idx) => {
+                const taskBg =
+                  task.status === TaskStatus.COMPLETED ? "#f5f5f5" : undefined;
+
+                return (
+                  <TaskItem
+                    key={idx}
+                    bgColor={taskBg}
+                    bold={task.status === TaskStatus.COMPLETED ? false : true}
+                  >
+                    <Link href={`/tasks/${task.id}`}>
+                      {task.status !== TaskStatus.COMPLETED ? (
+                        <p>{task.title}</p>
+                      ) : (
+                        <p>
+                          <s>{task.title}</s>
+                        </p>
+                      )}
+                    </Link>
+                    {task.status !== TaskStatus.COMPLETED && (
+                      <div className="task-actions">
+                        <XIcon
+                          className="task-delete-btn"
+                          size={18}
+                          onClick={() => handleTaskDelete(task.id)}
+                          cursor="pointer"
+                        />
+                        <CheckIcon
+                          className="task-check-btn"
+                          size={18}
+                          onClick={() => handleTaskChecking(task.id)}
+                          cursor="pointer"
+                        />
+                      </div>
                     )}
-                  </Link>
-                  {task.status !== TaskStatus.COMPLETED && (
-                    <div className="task-actions">
-                      <XIcon
-                        className="task-delete-btn"
-                        size={18}
-                        onClick={() => handleTaskDelete(task.id)}
-                        cursor="pointer"
-                      />
-                      <CheckIcon
-                        className="task-check-btn"
-                        size={18}
-                        onClick={() => handleTaskChecking(task.id)}
-                        cursor="pointer"
-                      />
-                    </div>
-                  )}
-                </TaskItem>
-              );
-            })}
+                  </TaskItem>
+                );
+              })
+            : null}
         </TasksContainer>
 
         <NewTaskForm onSubmit={onNewTaskSave}>
@@ -148,7 +161,7 @@ const MainContainer = styled.div`
   transform: translate(-50%, -50%);
 `;
 
-const Title = styled.h1`
+const PageTitle = styled.h1`
   font-size: 2rem;
   font-family: sans-serif;
 `;
@@ -156,17 +169,26 @@ const Title = styled.h1`
 const TasksContainer = styled.ul`
   width: 100%;
   padding: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
 `;
 
-const TaskItem = styled.li`
+const TaskItem = styled.li<{ bgColor?: string; bold?: boolean }>`
+  margin: 0 auto;
   display: flex;
-  width: 100%;
+  width: 80%;
   padding: 10px 15px;
-  background-color: lightgrey;
-  margin: 10px 5px;
+  background-color: ${(props) => props.bgColor ?? "lightgrey"};
+  margin: 5px;
   border-radius: 5px;
   align-items: center;
   justify-content: space-between;
+  font-weight: ${(props) => (props.bold ? "600" : "400")};
+
+  p {
+    font-size: 0.9rem;
+  }
 
   .task-actions > * {
     margin: 0 2px;
