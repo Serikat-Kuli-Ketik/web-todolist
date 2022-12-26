@@ -1,6 +1,13 @@
 import { rest, setupWorker } from "msw";
 
 export const handlers: Parameters<typeof setupWorker> = [
+  rest.get(
+    `${process.env.NEXT_PUBLIC_API_URL}/auth/sign-out`,
+    async (req, res, ctx) => {
+      return res(ctx.delay(300), ctx.status(200));
+    }
+  ),
+
   rest.post(
     `${process.env.NEXT_PUBLIC_API_URL}/auth/sign-in`,
     async (req, res, ctx) => {
