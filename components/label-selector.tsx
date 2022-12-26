@@ -1,6 +1,6 @@
 import { useState } from "react";
 import Modal from "react-modal";
-import useSwr from "swr";
+import useSwr, { mutate } from "swr";
 import { APIResponse, TaskLabel } from "../shared/types";
 import { swrFetcher } from "../utils";
 import { Loading } from "./loading";
@@ -8,6 +8,7 @@ import styled from "styled-components";
 import Color from "color";
 import { Plus, X } from "tabler-icons-react";
 import { LabelCreatorModal } from "./label-creator";
+import { toast } from "react-toastify";
 
 type Props = {
   isOpen: boolean;
@@ -16,7 +17,7 @@ type Props = {
 };
 
 export const LabelSelectorModal: React.FC<Props> = (props) => {
-  const { data, isLoading, error } = useSwr<APIResponse<TaskLabel[]>>(
+  const { data, isLoading, error, mutate } = useSwr<APIResponse<TaskLabel[]>>(
     `${process.env.NEXT_PUBLIC_API_URL}/labels`,
     swrFetcher
   );
@@ -28,6 +29,21 @@ export const LabelSelectorModal: React.FC<Props> = (props) => {
     if (searchTerm === "") return true;
     return label.title.toLowerCase().includes(searchTerm.toLowerCase());
   });
+
+  const handleLabelDeletion = async (labelId: string) => {
+    const response = await fetch(
+      `${process.env.NEXT_PUBLIC_API_URL}/labels/${labelId}`,
+      { method: "DELETE" }
+    );
+
+    if (!response.ok) {
+      toast("Failed deleting label, try again in a moment.", { type: "error" });
+      return;
+    }
+
+    mutate();
+    toast("Success deleting label.", { type: "success" });
+  };
 
   if (isLoading) return <Loading />;
   if (error) return <h1>Error fetching labels, try again in a moment.</h1>;
@@ -63,11 +79,15 @@ export const LabelSelectorModal: React.FC<Props> = (props) => {
             {displayedLabels.map((label, key) => (
               <LabelOption
                 key={key}
-                onClick={() => props.onSelect(label)}
                 bgColor={label.color}
                 textColor={Color(label.color).isLight() ? "black" : "white"}
               >
-                {label.title}
+                <p onClick={() => props.onSelect(label)}>{label.title}</p>
+                <X
+                  size={15}
+                  cursor="pointer"
+                  onClick={() => handleLabelDeletion(label.id)}
+                />
               </LabelOption>
             ))}
           </LabelListContainer>
@@ -144,4 +164,7 @@ const LabelOption = styled.li<OptionProps>`
   color: ${(prop) => prop.textColor};
   font-size: 0.9rem;
   cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
 `;
