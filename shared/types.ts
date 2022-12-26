@@ -9,12 +9,18 @@ export enum TaskStatus {
   COMPLETED = "Completed",
 }
 
+export type TaskLabel = {
+  id: string;
+  title: string;
+  color: string;
+};
+
 export type Task = {
   id: string;
   title: string;
   content?: string;
   status: TaskStatus;
-  labels?: Array<{ id: string; title: string; color: string }>;
+  labels?: TaskLabel[];
   reminders?: Array<{
     id: string;
     datetime: string;
