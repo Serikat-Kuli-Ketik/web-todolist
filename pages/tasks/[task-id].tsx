@@ -138,6 +138,7 @@ export default function TaskDetail() {
           handleAddNewLabel(label);
           setIsModalOpen(null);
         }}
+        onClose={() => setIsModalOpen(null)}
       />
 
       <ReminderModal isOpen={isModalOpen === "reminder"}>
