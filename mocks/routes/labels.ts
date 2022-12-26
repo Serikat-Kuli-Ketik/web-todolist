@@ -98,9 +98,9 @@ export const handlers: Parameters<typeof setupWorker> = [
   }),
 
   rest.post(
-    `${process.env.NEXT_PUBLIC_API_URL}/tasks`,
+    `${process.env.NEXT_PUBLIC_API_URL}/labels`,
     async (req, res, ctx) => {
-      const reqBody = (await req.json()) as Partial<Task>;
+      const reqBody = (await req.json()) as Partial<TaskLabel>;
 
       if (!reqBody.title) {
         return res(
@@ -119,13 +119,13 @@ export const handlers: Parameters<typeof setupWorker> = [
         );
       }
 
-      const newTask: TaskLabel = {
+      const newLabel: TaskLabel = {
         id: uuidv4(),
         title: reqBody.title,
-        color: "#000",
+        color: reqBody.color ?? "#000",
       };
 
-      labelsStore.push(newTask);
+      labelsStore.push(newLabel);
 
       return res(
         ctx.delay(201),
@@ -135,7 +135,7 @@ export const handlers: Parameters<typeof setupWorker> = [
             message: "Created",
           },
           data: {
-            id: newTask.id,
+            id: newLabel.id,
           },
         })
       );
