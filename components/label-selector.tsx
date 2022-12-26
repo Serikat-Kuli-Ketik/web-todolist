@@ -7,6 +7,7 @@ import { Loading } from "./loading";
 import styled from "styled-components";
 import Color from "color";
 import { Plus, X } from "tabler-icons-react";
+import { LabelCreatorModal } from "./label-creator";
 
 type Props = {
   isOpen: boolean;
@@ -21,6 +22,7 @@ export const LabelSelectorModal: React.FC<Props> = (props) => {
   );
 
   const [searchTerm, setSearchTerm] = useState("");
+  const [displayLabelCreator, setIsDisplayLabelCreator] = useState(false);
 
   const displayedLabels = data?.data.filter((label) => {
     if (searchTerm === "") return true;
@@ -34,8 +36,13 @@ export const LabelSelectorModal: React.FC<Props> = (props) => {
     <Modal isOpen={props.isOpen} style={modalStyles}>
       <ModalHeaderContainer>
         <ModalTitle>Label Selector</ModalTitle>
-        <X id="close-modal-btn" cursor={"pointer"} onClick={props.onClose} />
+        <X id="close-modal-btn" cursor="pointer" onClick={props.onClose} />
       </ModalHeaderContainer>
+
+      <LabelCreatorModal
+        isOpen={displayLabelCreator}
+        onClose={() => setIsDisplayLabelCreator(false)}
+      />
 
       {displayedLabels ? (
         <>
@@ -46,7 +53,10 @@ export const LabelSelectorModal: React.FC<Props> = (props) => {
               onChange={(e) => setSearchTerm(e.target.value)}
               placeholder="Search Labels"
             />
-            <Plus className="new-label-btn" />
+            <Plus
+              className="new-label-btn"
+              onClick={() => setIsDisplayLabelCreator(true)}
+            />
           </LabelSearchContainer>
 
           <LabelListContainer>
