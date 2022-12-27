@@ -6,6 +6,7 @@ import { useUserStore } from "../../stores/user.store";
 import { useRouteProtection } from "../../hooks/use-route-protection";
 import { UserAuthState } from "../../shared/types";
 import { toast } from "react-toastify";
+import { Colors } from "../../shared/constants";
 
 export default function SignUp() {
   useRouteProtection(UserAuthState.AUTHENTICATED);
@@ -90,6 +91,11 @@ export default function SignUp() {
             placeholder="Confirm Password"
           />
           <input type="submit" value="Sign up" />
+          <input
+            type="button"
+            value="I already have an account"
+            onClick={() => Router.replace("/auth/sign-in")}
+          />
         </SignInForm>
       </PageWrapper>
     </>
@@ -122,14 +128,16 @@ const SignInForm = styled.form<{ canSubmit: boolean }>`
 
   input {
     margin: 10px 0;
+    margin-bottom: 5px;
     border: 1px solid lightgrey;
     padding: 10px;
   }
 
-  input[type="submit"] {
+  input[type="submit"],
+  input[type="button"] {
     color: white;
     border: none;
-    background-color: ${(p) => (p.canSubmit ? "black" : "darkgrey")};
+    background-color: ${Colors.MAIN_BLUE};
     border-radius: 8px;
     transition: all 0.2s;
 
@@ -139,6 +147,16 @@ const SignInForm = styled.form<{ canSubmit: boolean }>`
 
     &:active {
       transform: scale(0.95);
+    }
+  }
+
+  input[type="button"] {
+    margin: 0;
+    background-color: white;
+    color: ${Colors.LIGHTER_BLUE};
+
+    :hover {
+      color: ${Colors.MAIN_BLUE};
     }
   }
 `;
