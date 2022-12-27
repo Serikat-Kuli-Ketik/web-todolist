@@ -1,12 +1,20 @@
 import Head from "next/head";
 import styled from "styled-components";
 import { useRouteProtection } from "../../hooks/use-route-protection";
-import useSwr from "swr";
+import useSwr, { mutate as globalMutate } from "swr";
 import { swrFetcher } from "../../utils";
-import { useRouter } from "next/router";
+import Router, { useRouter } from "next/router";
 import { Loading } from "../../components/loading";
 import { format } from "date-fns";
-import { Alarm, Edit, Repeat, DeviceFloppy, Plus, X } from "tabler-icons-react";
+import {
+  Alarm,
+  Edit,
+  Repeat,
+  DeviceFloppy,
+  Plus,
+  X,
+  Trash,
+} from "tabler-icons-react";
 import { APIResponse, Task, TaskLabel, TaskStatus } from "../../shared/types";
 import { ChangeEventHandler, useEffect, useRef, useState } from "react";
 import { toast } from "react-toastify";
@@ -123,6 +131,22 @@ export default function TaskDetail() {
     mutate();
   };
 
+  const handleDeleteTask = async () => {
+    const response = await fetch(
+      `${process.env.NEXT_PUBLIC_API_URL}/tasks/${router.query["task-id"]}`,
+      { method: "DELETE" }
+    );
+
+    if (!response.ok) {
+      toast("Failed deleting task, try again in a moment.", { type: "error" });
+      return;
+    }
+
+    globalMutate(`${process.env.NEXT_PUBLIC_API_URL}/tasks`);
+    toast("Success deleting task.", { type: "success" });
+    Router.replace("/");
+  };
+
   const handleAddNewLabel = async (newLabel: TaskLabel) => {
     setIsModalOpen("label");
     const response = await fetch(
@@ -206,19 +230,27 @@ export default function TaskDetail() {
           <Title ref={taskTitleRef} contentEditable onBlur={handleTitleChange}>
             {data?.data.title}
           </Title>
-          <StatusSelector
-            name="task-status"
-            id="task-status-selector"
-            defaultValue={data?.data.status}
-            onChange={handleTaskStatusChange}
-            ref={taskStatusRef}
-          >
-            {Object.values(TaskStatus).map((status, idx) => (
-              <option key={idx} value={status}>
-                {status}
-              </option>
-            ))}
-          </StatusSelector>
+          <div>
+            <StatusSelector
+              name="task-status"
+              id="task-status-selector"
+              defaultValue={data?.data.status}
+              onChange={handleTaskStatusChange}
+              ref={taskStatusRef}
+            >
+              {Object.values(TaskStatus).map((status, idx) => (
+                <option key={idx} value={status}>
+                  {status}
+                </option>
+              ))}
+            </StatusSelector>
+            <Trash
+              className="delete-task-btn"
+              size={30}
+              cursor="pointer"
+              onClick={handleDeleteTask}
+            />
+          </div>
         </TitleContainer>
         <DetailsContainer>
           <div id="content-container">
@@ -380,6 +412,28 @@ const TitleContainer = styled.div`
   justify-content: space-between;
   align-items: center;
   margin: 20px 0;
+
+  > div {
+    display: flex;
+    align-items: center;
+  }
+
+  .delete-task-btn {
+    color: red;
+    padding: 5px;
+    border-radius: 8px;
+    transition: all 0.2s;
+
+    :hover {
+      background-color: #ffcccb;
+    }
+
+    :active {
+      transform: scale(0.9);
+      background-color: red;
+      color: white;
+    }
+  }
 `;
 
 const Title = styled.h1`
@@ -390,6 +444,7 @@ const Title = styled.h1`
 
 const StatusSelector = styled.select`
   padding: 5px 10px;
+  margin: 0 10px;
   box-sizing: border-box;
   border-radius: 20px;
   color: black;
