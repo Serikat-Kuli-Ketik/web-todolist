@@ -1,5 +1,5 @@
 import Head from "next/head";
-import { FormEventHandler, useState } from "react";
+import { useState } from "react";
 import styled from "styled-components";
 import { useRouteProtection } from "../hooks/use-route-protection";
 import useSwr from "swr";
@@ -17,6 +17,8 @@ import {
 import { toast } from "react-toastify";
 import { useUserStore } from "../stores/user.store";
 import Router from "next/router";
+import { Colors } from "../shared/constants";
+import Color from "color";
 
 export default function Home() {
   useRouteProtection();
@@ -134,7 +136,7 @@ export default function Home() {
               <XIcon
                 size={30}
                 cursor="pointer"
-                className="new-task-btn"
+                className="cancel-new-task-btn"
                 onClick={() => setDisplayNewTaskForm(false)}
               />
             </div>
@@ -226,14 +228,38 @@ const PageTitleContainer = styled.div`
   .new-task-btn {
     margin-left: 5px;
     padding: 5px;
-    border: 0.5px solid lightgrey;
+    border: 0.5px solid ${Colors.NEAR_WHITE_BLUE};
+    background-color: ${Colors.NEAR_WHITE_BLUE};
     border-radius: 8px;
     transition: all 0.2s;
     font-size: 0.8rem;
+    color: ${Colors.MAIN_BLUE};
 
     :hover {
-      background-color: black;
+      border: 0.5px solid ${Colors.MAIN_BLUE};
+      background-color: ${Colors.MAIN_BLUE};
       color: white;
+    }
+
+    :active {
+      transform: scale(0.95);
+    }
+  }
+
+  .cancel-new-task-btn {
+    margin-left: 5px;
+    padding: 5px;
+    opacity: 0.8;
+    border-radius: 8px;
+    border: 1px solid lightgrey;
+    transition: all 0.2s;
+    font-size: 0.8rem;
+    color: black;
+
+    :hover {
+      background-color: red;
+      color: white;
+      opacity: 1;
     }
 
     :active {
@@ -268,6 +294,13 @@ const TaskItem = styled.li<{ bgColor?: string; bold?: boolean }>`
   justify-content: space-between;
   font-weight: ${(props) => (props.bold ? "600" : "400")};
 
+  :hover {
+    background-color: ${(props) =>
+      Color(props.bgColor ?? "lightgrey")
+        .darken(0.05)
+        .string()};
+  }
+
   p {
     font-size: 0.9rem;
   }
@@ -292,10 +325,17 @@ const TaskItem = styled.li<{ bgColor?: string; bold?: boolean }>`
       transition: all 0.2s;
     }
   }
-`;
 
-const NewTaskForm = styled.form`
-  align-self: flex-start;
+  .task-delete-btn {
+    color: red;
+    opacity: 0.4;
+
+    :hover {
+      background-color: red;
+      color: white;
+      opacity: 1;
+    }
+  }
 `;
 
 const NewTaskInput = styled.input`
@@ -322,7 +362,7 @@ const SignoutButton = styled.button`
 
   :hover {
     opacity: 1;
-    border: 1px solid lightgrey;
+    border: 1px solid black;
   }
 
   :active {

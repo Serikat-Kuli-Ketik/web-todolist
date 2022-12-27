@@ -153,7 +153,7 @@ const SignInForm = styled.form<{ canSubmit: boolean }>`
   input[type="button"] {
     margin: 0;
     background-color: white;
-    color: ${Colors.LIGHTER_BLUE};
+    color: ${Colors.LIGHT_BLUE};
 
     :hover {
       color: ${Colors.MAIN_BLUE};

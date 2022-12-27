@@ -4,5 +4,6 @@ export enum LocalStorageItems {
 
 export enum Colors {
   MAIN_BLUE = "#1a73e9",
-  LIGHTER_BLUE = "#7AAEF2",
+  LIGHT_BLUE = "#7AAEF2",
+  NEAR_WHITE_BLUE = "#D4E5FB",
 }
