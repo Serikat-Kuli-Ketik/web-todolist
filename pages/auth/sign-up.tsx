@@ -62,8 +62,9 @@ export default function SignUp() {
   return (
     <>
       <Head>
-        <title>Sign Up | Dializer</title>
+        <title>Sign Up | CheckList</title>
       </Head>
+
       <PageWrapper>
         <h1>Sign Up</h1>
         <SignInForm onSubmit={handleFormSubmit} canSubmit={canSubmitForm}>

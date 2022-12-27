@@ -50,8 +50,9 @@ export default function SignInPage() {
   return (
     <>
       <Head>
-        <title>Sign In | Dializer</title>
+        <title>Sign In | CheckList</title>
       </Head>
+
       <PageWrapper>
         <h1>Sign In</h1>
         <SignInForm

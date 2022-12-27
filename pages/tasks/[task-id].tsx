@@ -207,9 +207,7 @@ export default function TaskDetail() {
   return (
     <div>
       <Head>
-        <title>Todo List</title>
-        <meta name="description" content="Cross-platform todo list app" />
-        <link rel="icon" href="/favicon.ico" />
+        <title>{data?.data.title} | CheckList</title>
       </Head>
 
       <LabelSelectorModal

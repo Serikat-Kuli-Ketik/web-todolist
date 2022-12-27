@@ -111,9 +111,7 @@ export default function Home() {
   return (
     <div>
       <Head>
-        <title>Todo List</title>
-        <meta name="description" content="Cross-platform todo list app" />
-        <link rel="icon" href="/favicon.ico" />
+        <title>Tasks | CheckList</title>
       </Head>
 
       <MainContainer>
