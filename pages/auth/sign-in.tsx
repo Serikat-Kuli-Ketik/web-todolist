@@ -7,6 +7,7 @@ import { useRouteProtection } from "../../hooks/use-route-protection";
 import { UserAuthState } from "../../shared/types";
 import Link from "next/link";
 import { toast } from "react-toastify";
+import { Colors } from "../../shared/constants";
 
 export default function SignInPage() {
   useRouteProtection(UserAuthState.AUTHENTICATED);
@@ -117,7 +118,7 @@ const SignInForm = styled.form<{ canSubmit: boolean }>`
   input[type="submit"] {
     color: white;
     border: none;
-    background-color: ${(p) => (p.canSubmit ? "black" : "darkgrey")};
+    background-color: ${Colors.MAIN_BLUE};
     border-radius: 8px;
     transition: all 0.2s;
 
